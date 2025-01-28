@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI 机器人</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #chatbox { width: 80%; height: 300px; border: 1px solid #ccc; padding: 10px; overflow-y: auto; margin: 0 auto; }
+        input, button { margin-top: 10px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h2>OpenAI 聊天机器人</h2>
+    <div id="chatbox"></div>
+    <input type="text" id="userInput" placeholder="输入你的问题..." size="50">
+    <button onclick="sendMessage()">发送</button>
+
+    <script>
+        const apiKey = "sk-f4wxnlmrliKX0spX0591D47c0a654f25889a0dBdA9A757E8";
+        const chatbox = document.getElementById("chatbox");
+        const userInput = document.getElementById("userInput");
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            appendMessage("你: " + message, "user");
+            userInput.value = "";
+            
+            try {
+                const response = await fetch("https://api.aihubmix.com/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-3.5-turbo",
+                        messages: [{ role: "user", content: message }]
+                    })
+                });
+                
+                const data = await response.json();
+                const reply = data.choices[0].message.content;
+                appendMessage("机器人: " + reply, "bot");
+            } catch (error) {
+                appendMessage("错误: 无法获取回复", "error");
+            }
+        }
+        
+        function appendMessage(text, sender) {
+            const msgDiv = document.createElement("div");
+            msgDiv.textContent = text;
+            msgDiv.style.margin = "5px 0";
+            chatbox.appendChild(msgDiv);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
