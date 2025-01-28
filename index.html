@@ -6,95 +6,172 @@
     <title>OpenAI 机器人</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
             padding: 20px;
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #4e6aff, #78a3d5);
+            transition: background 0.5s ease;
+            color: #333;
         }
+    
+        h2 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 2.5rem; /* Increased size for better visibility */
+        }
+    
         #chatbox {
-            width: 90%;
-            max-width: 600px;
-            height: 400px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            overflow-y: auto;
-            margin: 0 auto 10px;
+            width: 100%;
+            max-width: 700px; /* Increased width for larger screens */
+            height: 500px;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 0 auto 20px;
             background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2); /* Slightly increased shadow for depth */
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
+            gap: 12px;
+            border: 2px solid #ddd;
         }
+    
         .message {
-            padding: 8px;
-            margin: 5px;
-            border-radius: 5px;
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 12px;
+            font-size: 1.2rem; /* Increased font size for better readability */
             max-width: 80%;
             word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in-out;
         }
+    
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    
         .user {
-            background-color: #d1e7fd;
+            background-color: #79c7ff;
             align-self: flex-end;
             text-align: right;
+            border-radius: 12px 12px 0 12px; /* Slightly adjusted for visual flow */
         }
+    
         .bot {
-            background-color: #e2e2e2;
+            background-color: #e5e5e5;
             align-self: flex-start;
             text-align: left;
+            border-radius: 12px 12px 12px 0; /* Slightly adjusted for visual flow */
         }
+    
+        .loading {
+            font-style: italic;
+            color: #888;
+        }
+    
         .input-container {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            width: 90%;
-            max-width: 600px;
-            margin: 0 auto;
+            gap: 12px;
+            width: 100%;
+            max-width: 700px;
+            margin-top: 20px;
         }
+    
         input {
             flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 14px 20px; /* Slightly increased padding */
+            border-radius: 30px;
+            border: 1px solid #ddd;
+            font-size: 1.1rem; /* Slight increase for clarity */
+            outline: none;
+            transition: border-color 0.3s;
         }
+    
+        input:focus {
+            border-color: #79c7ff;
+        }
+    
         button {
-            padding: 10px 15px;
-            border: none;
-            background-color: #007bff;
+            padding: 14px 24px; /* Slightly increased padding */
+            border-radius: 30px;
+            background-color: #79c7ff;
             color: white;
-            border-radius: 5px;
+            border: none;
+            font-size: 1.1rem; /* Slightly larger font for buttons */
             cursor: pointer;
+            transition: background-color 0.3s;
         }
+    
         button:hover {
-            background-color: #0056b3;
+            background-color: #4ba3d1;
         }
-        @media (max-width: 600px) {
+    
+        .dark-mode-btn {
+            margin-top: 20px;
+            padding: 12px 18px; /* Slightly adjusted padding for better clickability */
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+    
+        .dark-mode-btn:hover {
+            background-color: #444;
+        }
+    
+        @media (max-width: 768px) {
             #chatbox {
-                height: 300px;
+                height: 450px; /* Adjusted for tablet screens */
             }
-            input {
-                width: 70%;
+        }
+    
+        @media (max-width: 600px) {
+            h2 {
+                font-size: 1.8rem; /* Smaller title for mobile view */
             }
-            button {
-                padding: 10px;
+    
+            #chatbox {
+                height: 400px; /* Reduced height for small screens */
+            }
+    
+            input, button {
+                font-size: 1rem; /* Consistent font sizes for mobile */
+                padding: 12px 18px;
+            }
+    
+            .input-container {
+                gap: 8px; /* Less space between inputs for smaller screens */
             }
         }
     </style>
+    
 </head>
 <body>
     <h2>OpenAI 聊天机器人</h2>
     <div id="chatbox"></div>
     <div class="input-container">
-        <input type="text" id="userInput" placeholder="输入你的问题...">
+        <input type="text" id="userInput" placeholder="输入你的问题..." onkeypress="handleKeyPress(event)">
         <button onclick="sendMessage()">发送</button>
     </div>
+    <button class="dark-mode-btn" onclick="toggleDarkMode()">切换暗黑模式</button>
 
     <script>
         const apiKey = "sk-f4wxnlmrliKX0spX0591D47c0a654f25889a0dBdA9A757E8";
         const chatbox = document.getElementById("chatbox");
         const userInput = document.getElementById("userInput");
 
-        // 存储对话上下文
         let messages = [{ role: "system", content: "你是一个友好的 AI 机器人。" }];
+        let darkMode = false;
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
 
         async function sendMessage() {
             const message = userInput.value.trim();
@@ -102,8 +179,8 @@
             
             appendMessage("你: " + message, "user");
             userInput.value = "";
+            appendMessage("机器人: 正在思考...", "loading");
             
-            // 记录用户输入
             messages.push({ role: "user", content: message });
 
             try {
@@ -122,10 +199,11 @@
                 const data = await response.json();
                 const reply = data.choices?.[0]?.message?.content || "无法解析回复";
                 
-                // 记录 AI 回复
                 messages.push({ role: "assistant", content: reply });
+                removeLoading();
                 appendMessage("机器人: " + reply, "bot");
             } catch (error) {
+                removeLoading();
                 appendMessage("错误: 无法获取回复", "error");
                 console.error("请求失败:", error);
             }
@@ -138,6 +216,19 @@
             chatbox.appendChild(msgDiv);
             chatbox.scrollTop = chatbox.scrollHeight;
         }
+
+        function removeLoading() {
+            const loadingElements = document.querySelectorAll(".loading");
+            loadingElements.forEach(el => el.remove());
+        }
+
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            document.body.style.background = darkMode ? "linear-gradient(135deg, #333, #444)" : "linear-gradient(135deg, #6e7fdf, #78a3d5)";
+            document.body.style.color = darkMode ? "white" : "black";
+            document.querySelector('button').style.backgroundColor = darkMode ? '#444' : '#79c7ff';
+        }
     </script>
 </body>
 </html>
+
